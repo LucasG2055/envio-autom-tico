@@ -1,0 +1,53 @@
+import { Badge } from "@/components/ui/badge"
+import { getReminderLogs } from "@/lib/reminders"
+import { formatDate } from "@/lib/utils"
+import { CheckCircle, XCircle } from "lucide-react"
+
+export default async function ReminderLogs() {
+  // In a real app, this would fetch data from your database
+  const logs = await getReminderLogs()
+
+  if (logs.length === 0) {
+    return (
+      <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed">
+        <p className="text-sm text-muted-foreground">No hay registros de recordatorios</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {logs.map((log) => (
+        <div key={log.id} className="flex items-start gap-4 rounded-lg border p-4">
+          {log.status === "success" ? (
+            <CheckCircle className="mt-0.5 h-5 w-5 text-green-500" />
+          ) : (
+            <XCircle className="mt-0.5 h-5 w-5 text-red-500" />
+          )}
+
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between">
+              <p className="font-medium">{log.patientName}</p>
+              <Badge variant={log.status === "success" ? "success" : "destructive"}>
+                {log.status === "success" ? "Enviado" : "Fallido"}
+              </Badge>
+            </div>
+            <p className="text-sm">{log.message}</p>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <span>{formatDate(log.sentAt)}</span>
+              <span className="mx-2">•</span>
+              <span>{log.phone}</span>
+              {log.status === "error" && (
+                <>
+                  <span className="mx-2">•</span>
+                  <span className="text-red-500">{log.error}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+

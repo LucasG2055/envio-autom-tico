@@ -1,0 +1,43 @@
+import { google } from "googleapis"
+
+// Inicializar la API de Google Sheets
+export function getGoogleSheetsClient() {
+  try {
+    // Crear un cliente JWT con las credenciales
+    const auth = new google.auth.JWT({
+      email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+    })
+
+    // Crear el cliente de Google Sheets
+    const sheets = google.sheets({ version: "v4", auth })
+    return sheets
+  } catch (error) {
+    console.error("Error al inicializar el cliente de Google Sheets:", error)
+    throw error
+  }
+}
+
+// Función para obtener datos de la planilla
+export async function getSheetData(range: string) {
+  try {
+    const sheets = getGoogleSheetsClient()
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID
+
+    if (!spreadsheetId) {
+      throw new Error("ID de la planilla no configurado")
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range,
+    })
+
+    return response.data.values || []
+  } catch (error) {
+    console.error("Error al obtener datos de la planilla:", error)
+    throw error
+  }
+}
+
